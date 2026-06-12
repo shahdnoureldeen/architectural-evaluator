@@ -4,12 +4,12 @@ import Diagrams from './Diagrams';
 import { 
   ShieldAlert, Sparkles, FileText, Download, CheckCircle, 
   HelpCircle, ChevronRight, RefreshCw, AlertTriangle, 
-  Cpu, Layers, Eye, RefreshCw as LoopIcon
+  Cpu, Layers, Eye, RefreshCw as LoopIcon, ArrowLeft
 } from 'lucide-react';
 import { StructuralChart, CircularityChart, ThermodynamicChart } from './TelemetryCharts';
 import SpaceProgram from './SpaceProgram';
 
-export default function Dashboard({ review, onReset, projectData }) {
+export default function Dashboard({ review, onReset, onGoHome, projectData }) {
   const [activeTab, setActiveTab] = useState('overview');
   const [booting, setBooting] = useState(true);
   const [bootStep, setBootStep] = useState(0);
@@ -170,6 +170,9 @@ ${review.nextActions.map((a, idx) => `${idx + 1}. ${a}`).join('\n')}
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>OVERALL</span>
           </div>
           <div style={styles.actions}>
+            <button className="tech-btn" onClick={onGoHome} style={styles.actionBtn}>
+              <ArrowLeft size={14} style={{ marginRight: '6px' }} /> BACK TO WELCOME
+            </button>
             <button className="tech-btn" onClick={handleExportMarkdown} style={styles.actionBtn}>
               <Download size={14} style={{ marginRight: '6px' }} /> EXPORT MD
             </button>

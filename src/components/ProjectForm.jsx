@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { PRESETS, STRUCTURAL_SYSTEMS, FOUNDATION_TYPES, PRESENTATION_ASSETS } from '../services/geminiService';
 import { ArrowRight, ArrowLeft, Cpu, Sparkles, Upload, X, FileImage } from 'lucide-react';
 
-export default function ProjectForm({ onSubmit, initialData }) {
+export default function ProjectForm({ onSubmit, initialData, onCancel }) {
   const [step, setStep] = useState(1);
   const fileInputRef = useRef(null);
   
@@ -363,7 +363,9 @@ export default function ProjectForm({ onSubmit, initialData }) {
               <ArrowLeft size={14} style={{ marginRight: '6px' }} /> PREVIOUS
             </button>
           ) : (
-            <div style={{ flex: 1 }}></div>
+            <button type="button" onClick={onCancel} className="tech-btn" style={styles.navBtn}>
+              <ArrowLeft size={14} style={{ marginRight: '6px' }} /> BACK TO WELCOME
+            </button>
           )}
 
           {step < 4 ? (

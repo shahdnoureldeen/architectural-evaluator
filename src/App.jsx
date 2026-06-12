@@ -196,13 +196,18 @@ export default function App() {
       )}
 
       {view === 'form' && (
-        <ProjectForm onSubmit={handleFormSubmit} initialData={projectData} />
+        <ProjectForm 
+          onSubmit={handleFormSubmit} 
+          initialData={projectData} 
+          onCancel={() => setView('home')} 
+        />
       )}
 
       {view === 'dashboard' && (
         <Dashboard 
           review={review} 
           onReset={handleReset} 
+          onGoHome={() => setView('home')}
           projectData={projectData} 
         />
       )}
