@@ -12,6 +12,8 @@ export default function SpaceProgram({ projectData }) {
   const [newName, setNewName] = useState('');
   const [newArea, setNewArea] = useState(150);
   const [newCategory, setNewCategory] = useState('R&D');
+  const [categories, setCategories] = useState(['R&D', 'Public', 'Operations', 'Admin']);
+  const [customCatInput, setCustomCatInput] = useState('');
 
   // Load default space program index based on project data
   useEffect(() => {
@@ -93,6 +95,22 @@ export default function SpaceProgram({ projectData }) {
     setAdjacency(initialAdj);
   }, [projectData]);
 
+  // Handle dynamic category creation
+  const handleCreateCategory = (e) => {
+    e.preventDefault();
+    const trimmed = customCatInput.trim();
+    if (!trimmed) return;
+    
+    // Capitalize first letter or keep uppercase
+    const formatted = trimmed.length > 3 ? trimmed.charAt(0).toUpperCase() + trimmed.slice(1) : trimmed.toUpperCase();
+    
+    if (!categories.includes(formatted)) {
+      setCategories(prev => [...prev, formatted]);
+    }
+    setNewCategory(formatted);
+    setCustomCatInput('');
+  };
+
   // Handle adding custom spaces
   const handleAddSpace = (e) => {
     e.preventDefault();
@@ -151,15 +169,31 @@ export default function SpaceProgram({ projectData }) {
     }));
   };
 
+  const themeColors = [
+    'var(--color-pink-orchid)', // Magenta/Pink
+    '#00ff66',                  // Neon Green
+    'var(--color-blush)',       // Blush Red/Pink
+    '#a855f7',                  // Purple
+    '#00d4ff',                  // Cyan / Neon Blue
+    '#ffaa00',                  // Amber / Orange
+    '#ff0055',                  // Bright Red
+    '#e2ff00'                   // Lime Green
+  ];
+
   // Category color coding
   const getCategoryColor = (cat) => {
-    switch(cat) {
-      case 'Public': return 'var(--color-pink-orchid)'; // Magenta
-      case 'Operations': return 'var(--color-blush)';   // Pinkish Red
-      case 'R&D': return '#00ff66';                    // Green
-      case 'Admin': return '#a855f7';                  // Purple
-      default: return 'var(--text-muted)';
+    if (cat === 'Public') return 'var(--color-pink-orchid)';
+    if (cat === 'Operations') return 'var(--color-blush)';
+    if (cat === 'R&D') return '#00ff66';
+    if (cat === 'Admin') return '#a855f7';
+
+    // Hash-code to pick a theme color for custom categories
+    let hash = 0;
+    for (let i = 0; i < cat.length; i++) {
+      hash = cat.charCodeAt(i) + ((hash << 5) - hash);
     }
+    const index = Math.abs(hash) % themeColors.length;
+    return themeColors[index];
   };
 
   // Adjacency Cell icon/color
@@ -318,7 +352,7 @@ export default function SpaceProgram({ projectData }) {
                     style={{ padding: '0.4rem 0.6rem', fontSize: '0.8rem' }}
                   />
                 </div>
-                <div style={{ flex: 1, minWidth: '90px' }}>
+                <div style={{ flex: 1, minWidth: '95px' }}>
                   <label className="form-label" style={{ fontSize: '0.65rem' }}>Category</label>
                   <select
                     value={newCategory}
@@ -326,11 +360,32 @@ export default function SpaceProgram({ projectData }) {
                     className="form-input"
                     style={{ padding: '0.35rem 0.6rem', fontSize: '0.8rem', background: '#090206' }}
                   >
-                    <option value="R&D">R&D</option>
-                    <option value="Public">Public</option>
-                    <option value="Operations">Operations</option>
-                    <option value="Admin">Admin</option>
+                    {categories.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
                   </select>
+                </div>
+                <div style={{ flex: 1.2, minWidth: '130px' }}>
+                  <label className="form-label" style={{ fontSize: '0.65rem' }}>Create Category</label>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <input
+                      type="text"
+                      placeholder="e.g., Services"
+                      value={customCatInput}
+                      onChange={(e) => setCustomCatInput(e.target.value)}
+                      className="form-input"
+                      style={{ padding: '0.4rem 0.6rem', fontSize: '0.8rem', height: '32px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCreateCategory}
+                      className="tech-btn primary"
+                      style={{ padding: '0 0.5rem', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      title="Add Category"
+                    >
+                      <Plus size={10} />
+                    </button>
+                  </div>
                 </div>
                 <div style={{ flex: 1, minWidth: '100px' }}>
                   <label className="form-label" style={{ fontSize: '0.65rem' }}>Area ({newArea} m²)</label>
@@ -452,8 +507,8 @@ export default function SpaceProgram({ projectData }) {
               </div>
             </div>
 
-            <div style={styles.legendBar}>
-              {['Public', 'R&D', 'Operations', 'Admin'].map(cat => (
+            <div style={styles.legendBar} style={{ display: 'flex', gap: '0.75rem 1.25rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '0.75rem', borderTop: '1px solid rgba(241, 178, 204, 0.08)', paddingTop: '0.75rem' }}>
+              {categories.map(cat => (
                 <div key={cat} style={styles.legendItem}>
                   <div style={{ ...styles.legendDot, background: getCategoryColor(cat) }}></div>
                   <span className="mono-tag" style={{ fontSize: '0.6rem' }}>{cat}</span>
