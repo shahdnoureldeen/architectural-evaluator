@@ -6,16 +6,14 @@ import {
   HelpCircle, ChevronRight, RefreshCw, AlertTriangle, 
   Cpu, Layers, Eye, RefreshCw as LoopIcon
 } from 'lucide-react';
+import { StructuralChart, CircularityChart, ThermodynamicChart } from './TelemetryCharts';
+import SpaceProgram from './SpaceProgram';
 
 export default function Dashboard({ review, onReset, projectData }) {
   const [activeTab, setActiveTab] = useState('overview');
   const [booting, setBooting] = useState(true);
   const [bootStep, setBootStep] = useState(0);
-
-  // States for NANO BANANA rendering engine simulation
-  const [nanoState, setNanoState] = useState('idle'); // 'idle', 'rendering', 'complete'
-  const [nanoLogStep, setNanoLogStep] = useState(0);
-  const [nanoProgress, setNanoProgress] = useState(0);
+  const [activeChartTab, setActiveChartTab] = useState('radar');
 
   const bootLogs = [
     "ACQUIRING SITE CLIMATOLOGY & TOPOGRAPHIC ARRAYS...",
@@ -29,23 +27,16 @@ export default function Dashboard({ review, onReset, projectData }) {
     "REVIEW GENERATION SEQUENCE COMPLETED."
   ];
 
-  const nanoLogs = [
-    "ACQUIRING UPLINK LAYER AND BOUNDING CHANNELS...",
-    "DECONSTRUCTING MONOLITHIC GEOMETRY & VERTICES...",
-    "PERFORMING STEPPED-ROOF VOLUMETRIC CELLULAR SPLITS...",
-    "CALCULATING HYDRODYNAMIC SHEAR STRESS VOIDS...",
-    "INJECTING NANO BANANA OPTIMIZED SHADER MAPS...",
-    "RENDERING COMPLETED. SYNTHESIZING DfD BLUEPRINT..."
-  ];
-
   // Simulated diagnostic logging sequence on mount
   useEffect(() => {
     if (booting) {
       const interval = setInterval(() => {
         setBootStep(prev => {
           if (prev >= bootLogs.length - 1) {
-            clearInterval(interval);
-            setTimeout(() => setBooting(false), 500);
+            if (review) {
+              clearInterval(interval);
+              setTimeout(() => setBooting(false), 500);
+            }
             return prev;
           }
           return prev + 1;
@@ -53,36 +44,7 @@ export default function Dashboard({ review, onReset, projectData }) {
       }, 350);
       return () => clearInterval(interval);
     }
-  }, [booting]);
-
-  // Handle Nano Banana Rendering Simulation
-  const handleNanoRender = () => {
-    setNanoState('rendering');
-    setNanoLogStep(0);
-    setNanoProgress(0);
-
-    // Increment progress and log messages
-    const progressInterval = setInterval(() => {
-      setNanoProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(progressInterval);
-          setNanoState('complete');
-          return 100;
-        }
-        return prev + 2.5;
-      });
-    }, 100);
-
-    const logInterval = setInterval(() => {
-      setNanoLogStep(prev => {
-        if (prev >= nanoLogs.length - 1) {
-          clearInterval(logInterval);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 600);
-  };
+  }, [booting, review]);
 
   if (booting) {
     return (
@@ -223,17 +185,40 @@ ${review.nextActions.map((a, idx) => `${idx + 1}. ${a}`).join('\n')}
 
       {/* Main Content Layout */}
       <div style={styles.layoutColumns} className="dashboard-columns-responsive">
-        {/* Left Column: Visual Analytics */}
         <div style={styles.leftColumn}>
-          <Diagrams projectData={{
-            ...projectData,
-            // If Nano Banana is complete, swap diagram overlay to show the refined image
-            uploadedImage: nanoState === 'complete' ? '/holographic_refined.png' : projectData.uploadedImage
-          }} />
+          <Diagrams projectData={projectData} />
           
-          <div className="tech-panel" style={{ background: 'rgba(25, 10, 19, 0.2)' }}>
-            <h3 style={styles.panelTitle} className="mono-tag">[ RADAR VECTORS ]</h3>
-            <ScoreChart scores={review.directorSummary} />
+          <div className="tech-panel" style={{ background: 'rgba(25, 10, 19, 0.2)', minHeight: '430px' }}>
+            <div style={styles.chartTabs}>
+              {[
+                { id: 'radar', name: 'Radar Graph' },
+                { id: 'structural', name: 'Structural Stress' },
+                { id: 'circularity', name: 'Circular Lifecycle' },
+                { id: 'thermo', name: 'Thermodynamic Waves' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveChartTab(tab.id)}
+                  style={{
+                    ...styles.chartTabBtn,
+                    color: activeChartTab === tab.id ? '#ffffff' : 'var(--text-muted)',
+                    borderColor: activeChartTab === tab.id ? 'var(--color-pink-orchid)' : 'transparent',
+                    background: activeChartTab === tab.id ? 'rgba(80, 26, 49, 0.25)' : 'transparent'
+                  }}
+                  className="mono-tag"
+                >
+                  {tab.name.toUpperCase()}
+                </button>
+              ))}
+            </div>
+            
+            <div style={{ marginTop: '1rem' }}>
+              {activeChartTab === 'radar' && <ScoreChart scores={review.directorSummary} />}
+              {activeChartTab === 'structural' && <StructuralChart projectData={projectData} />}
+              {activeChartTab === 'circularity' && <CircularityChart projectData={projectData} />}
+              {activeChartTab === 'thermo' && <ThermodynamicChart projectData={projectData} />}
+            </div>
           </div>
         </div>
 
@@ -241,7 +226,7 @@ ${review.nextActions.map((a, idx) => `${idx + 1}. ${a}`).join('\n')}
         <div style={styles.rightColumn}>
           {/* Tabs header */}
           <div style={styles.tabsHeader}>
-            {['overview', 'architect', 'sustainability', 'structural', 'ux', 'jury'].map((tab) => (
+            {['overview', 'space program', 'architect', 'sustainability', 'structural', 'ux', 'jury'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -261,6 +246,12 @@ ${review.nextActions.map((a, idx) => `${idx + 1}. ${a}`).join('\n')}
           {/* Tab Panels */}
           <div className="tech-panel" style={styles.tabContentPanel}>
             <div className="scan-line"></div>
+            
+            {activeTab === 'space program' && (
+              <div style={styles.tabScrollable} className="glass-scroll">
+                <SpaceProgram projectData={projectData} />
+              </div>
+            )}
             
             {activeTab === 'overview' && (
               <div style={styles.tabScrollable} className="glass-scroll">
@@ -304,7 +295,29 @@ ${review.nextActions.map((a, idx) => `${idx + 1}. ${a}`).join('\n')}
                   </ul>
                 </div>
 
-                <h3 style={{ ...styles.sectionHeading, marginTop: '2rem' }}>NEXT DESIGN ACTIONS</h3>
+                {/* AGENT DEBATE ROOM */}
+                {review.directorSummary.agentDebates && (
+                  <div style={{ ...styles.sectionBox, marginTop: '2rem' }}>
+                    <h3 style={{ ...styles.sectionHeading, borderLeftColor: 'var(--color-blush)' }}>
+                      AGENT DEBATE ROOM
+                    </h3>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                      Direct cross-critiques and programmatic conflicts flagged during agent deliberation:
+                    </p>
+                    <div style={styles.debatesList}>
+                      {review.directorSummary.agentDebates.map((debate, i) => (
+                        <div key={i} style={styles.debateCard} className="tech-panel">
+                          <div style={styles.debateAgents} className="mono-tag">
+                            [ DIALOGUE NODE // {debate.agents.toUpperCase()} ]
+                          </div>
+                          <p style={styles.debateArgument}>"{debate.argument}"</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <h3 style={{ ...styles.sectionHeading, marginTop: '2.5rem' }}>NEXT DESIGN ACTIONS</h3>
                 <div style={styles.nextActionsList}>
                   {review.nextActions.map((item, idx) => (
                     <div key={idx} style={styles.actionCard} className="tech-panel">
@@ -367,101 +380,7 @@ ${review.nextActions.map((a, idx) => `${idx + 1}. ${a}`).join('\n')}
                   ))}
                 </div>
 
-                {/* NANO BANANA VISUAL RE-IMAGINING ENGINE */}
-                <div style={styles.nanoContainer} className="tech-panel">
-                  <div className="scan-line"></div>
-                  
-                  <div style={styles.nanoHeader}>
-                    <Cpu size={16} color="var(--color-pink-orchid)" />
-                    <span className="mono-tag" style={{ color: '#ffffff', fontSize: '0.75rem', letterSpacing: '0.1em' }}>
-                      NANO BANANA // FORM RE-IMAGINING ENGINE
-                    </span>
-                  </div>
 
-                  {nanoState === 'idle' && (
-                    <div style={styles.nanoBody}>
-                      <p style={styles.nanoText}>
-                        The Architect Agent has generated volumetric adjustments. Run the <strong>NANO BANANA</strong> shader compilation to synthesize a refined visual pavilion model.
-                      </p>
-                      <button 
-                        type="button" 
-                        className="tech-btn primary" 
-                        onClick={handleNanoRender}
-                        style={styles.nanoBtn}
-                      >
-                        <Sparkles size={14} style={{ marginRight: '6px' }} /> GENERATE REFINED MASSING
-                      </button>
-                    </div>
-                  )}
-
-                  {nanoState === 'rendering' && (
-                    <div style={styles.nanoBody}>
-                      <div style={styles.terminalPanel}>
-                        <div style={styles.terminalHeader}>
-                          <span className="mono-tag" style={{ fontSize: '0.6rem', opacity: 0.5 }}>GPU CLUSTER UPLINK ACTIVE</span>
-                          <span style={styles.terminalLoader} className="spin"></span>
-                        </div>
-                        <div style={styles.terminalConsole}>
-                          {nanoLogs.slice(0, nanoLogStep + 1).map((log, idx) => (
-                            <div key={idx} style={styles.terminalLine} className="mono-tag">
-                              &gt; {log} {idx < nanoLogStep && <span style={{ color: '#00ff66' }}>[DONE]</span>}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Glowing progress bar */}
-                      <div style={styles.progressContainer}>
-                        <div className="mono-tag" style={{ fontSize: '0.65rem', display: 'flex', justifyContent: 'space-between' }}>
-                          <span>COMPUTING RENDER BUFFER</span>
-                          <span>{Math.round(nanoProgress)}%</span>
-                        </div>
-                        <div style={styles.progressBarTrack}>
-                          <div style={{ ...styles.progressBarFill, width: `${nanoProgress}%` }}></div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {nanoState === 'complete' && (
-                    <div style={styles.nanoBody}>
-                      <p style={styles.nanoText}>
-                        <strong>Visual synthesis successful.</strong> The model has been re-imagined with stepped-roof volumetric contours and stilted floor grids, resolving convective thermal currents and flood loading.
-                      </p>
-
-                      {/* Before / After side-by-side view */}
-                      <div style={styles.comparisonGrid}>
-                        <div style={styles.comparisonCard} className="tech-panel">
-                          <span className="mono-tag" style={styles.comparisonTag}>[ ORIGINAL MASSING ]</span>
-                          <img 
-                            src={projectData.uploadedImage || "/holographic_pavilion.png"} 
-                            alt="Original design" 
-                            style={styles.comparisonImg} 
-                          />
-                        </div>
-                        <div style={styles.comparisonCard} className="tech-panel" style={{ ...styles.comparisonCard, borderColor: 'var(--color-pink-orchid)', boxShadow: 'var(--glow-shadow)' }}>
-                          <span className="mono-tag" style={{ ...styles.comparisonTag, color: 'var(--color-pink-orchid)' }}>
-                            [ NANO BANANA REFINED ]
-                          </span>
-                          <img 
-                            src="/holographic_refined.png" 
-                            alt="Refined stepped-roof design" 
-                            style={styles.comparisonImg} 
-                          />
-                        </div>
-                      </div>
-
-                      <button 
-                        type="button" 
-                        className="tech-btn" 
-                        onClick={() => setNanoState('idle')}
-                        style={{ ...styles.nanoBtn, width: 'auto', alignSelf: 'flex-end', marginTop: '0.5rem' }}
-                      >
-                        <LoopIcon size={12} style={{ marginRight: '6px' }} /> RE-RUN PIPELINE
-                      </button>
-                    </div>
-                  )}
-                </div>
 
                 {review.agents.architect.precedent && (
                   <div style={styles.precedentBox} className="tech-panel">
@@ -929,6 +848,18 @@ const styles = {
     border: '1px solid rgba(255,255,255,0.03)',
     borderRadius: '2px'
   },
+  refinedWrapper: {
+    position: 'relative',
+    width: '100%',
+    height: '110px',
+    background: '#040103',
+    border: '1px solid rgba(255,255,255,0.03)',
+    borderRadius: '2px',
+    overflow: 'hidden',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   agentHeader: {
     display: 'flex',
     justifyContent: 'space-between',
@@ -995,6 +926,46 @@ const styles = {
     fontSize: '0.85rem',
     lineHeight: '1.5',
     color: '#ffffff'
+  },
+  debatesList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem'
+  },
+  debateCard: {
+    padding: '1rem',
+    background: 'rgba(80, 26, 49, 0.08)',
+    borderLeft: '2px solid var(--color-pink-orchid)',
+    borderRadius: '2px'
+  },
+  debateAgents: {
+    fontSize: '0.65rem',
+    color: 'var(--color-pink-orchid)',
+    marginBottom: '0.5rem'
+  },
+  debateArgument: {
+    fontSize: '0.82rem',
+    color: 'var(--text-primary)',
+    fontStyle: 'italic',
+    lineHeight: '1.4'
+  },
+  chartTabs: {
+    display: 'flex',
+    gap: '0.25rem',
+    overflowX: 'auto',
+    borderBottom: '1px solid rgba(200, 82, 124, 0.15)',
+    paddingBottom: '4px',
+    marginBottom: '1rem'
+  },
+  chartTabBtn: {
+    padding: '0.5rem 0.75rem',
+    fontSize: '0.62rem',
+    background: 'transparent',
+    border: 'none',
+    borderBottom: '2px solid transparent',
+    cursor: 'pointer',
+    transition: 'all var(--transition-fast)',
+    whiteSpace: 'nowrap'
   }
 };
 

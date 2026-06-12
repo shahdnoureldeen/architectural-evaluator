@@ -6,25 +6,33 @@ export default function ProjectForm({ onSubmit, initialData }) {
   const [step, setStep] = useState(1);
   const fileInputRef = useRef(null);
   
-  const [formData, setFormData] = useState(initialData || {
-    title: '',
-    type: '',
-    scale: '',
-    location: '',
-    climate: '',
-    concept: '',
-    materials: '',
-    constraints: '',
-    structuralSystem: 'lightweight_frame',
-    foundationType: 'screw_piles',
-    presentationAssets: ['renders'],
-    uploadedImage: null
+  const [formData, setFormData] = useState(() => {
+    const defaults = {
+      title: '',
+      type: '',
+      scale: '',
+      location: '',
+      climate: '',
+      concept: '',
+      materials: '',
+      constraints: '',
+      structuralSystem: 'lightweight_frame',
+      foundationType: 'screw_piles',
+      presentationAssets: ['renders'],
+      uploadedImage: null
+    };
+    if (initialData) {
+      return { ...defaults, ...initialData };
+    }
+    return defaults;
   });
 
   const handlePresetSelect = (preset) => {
     setFormData({
       ...preset,
-      uploadedImage: null // Reset upload on loading presets, so they can test defaults
+      uploadedImage: null,
+      uploadedImageBase64: null,
+      uploadedImageMimeType: null
     });
     setStep(1); // Return to start to inspect values
   };
@@ -51,12 +59,28 @@ export default function ProjectForm({ onSubmit, initialData }) {
         return;
       }
       const imageUrl = URL.createObjectURL(file);
-      handleInputChange('uploadedImage', imageUrl);
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Data = reader.result.split(',')[1];
+        setFormData(prev => ({
+          ...prev,
+          uploadedImage: imageUrl,
+          uploadedImageBase64: base64Data,
+          uploadedImageMimeType: file.type
+        }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const removeImage = () => {
-    handleInputChange('uploadedImage', null);
+    setFormData(prev => ({
+      ...prev,
+      uploadedImage: null,
+      uploadedImageBase64: null,
+      uploadedImageMimeType: null
+    }));
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -271,12 +295,12 @@ export default function ProjectForm({ onSubmit, initialData }) {
               <div style={{ flex: 1, minWidth: '200px' }}>
                 <label className="form-label">Superstructure System</label>
                 <select
-                  value={formData.structuralSystem}
+                  value={formData.structuralSystem || 'lightweight_frame'}
                   onChange={(e) => handleInputChange('structuralSystem', e.target.value)}
                   className="form-input"
                   style={{ background: 'rgba(15, 5, 11, 0.9)' }}
                 >
-                  {Object.entries(STRUCTURAL_SYSTEMS).map(([k, v]) => (
+                  {Object.entries(STRUCTURAL_SYSTEMS || {}).map(([k, v]) => (
                     <option key={k} value={k}>{v}</option>
                   ))}
                 </select>
@@ -284,12 +308,12 @@ export default function ProjectForm({ onSubmit, initialData }) {
               <div style={{ flex: 1, minWidth: '200px' }}>
                 <label className="form-label">Foundation Type</label>
                 <select
-                  value={formData.foundationType}
+                  value={formData.foundationType || 'screw_piles'}
                   onChange={(e) => handleInputChange('foundationType', e.target.value)}
                   className="form-input"
                   style={{ background: 'rgba(15, 5, 11, 0.9)' }}
                 >
-                  {Object.entries(FOUNDATION_TYPES).map(([k, v]) => (
+                  {Object.entries(FOUNDATION_TYPES || {}).map(([k, v]) => (
                     <option key={k} value={k}>{v}</option>
                   ))}
                 </select>
@@ -300,7 +324,7 @@ export default function ProjectForm({ onSubmit, initialData }) {
             <div className="form-group">
               <label className="form-label">Presentation Assets Included</label>
               <div style={styles.checkboxGrid}>
-                {Object.entries(PRESENTATION_ASSETS).map(([key, name]) => {
+                {Object.entries(PRESENTATION_ASSETS || {}).map(([key, name]) => {
                   const isChecked = (formData.presentationAssets || []).includes(key);
                   return (
                     <label key={key} style={styles.checkboxLabel}>

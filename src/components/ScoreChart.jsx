@@ -188,6 +188,21 @@ export default function ScoreChart({ scores }) {
           </div>
         ))}
       </div>
+
+      {/* Score Justifications */}
+      {scores.scoreJustifications && (
+        <div style={styles.justificationsSection}>
+          <div className="mono-tag" style={styles.justTitle}>[ RATING TRANSCRIPTS // JUSTIFICATION ]</div>
+          <div style={styles.justList}>
+            {Object.entries(scores.scoreJustifications).map(([key, text]) => (
+              <div key={key} style={styles.justItem}>
+                <span className="mono-tag" style={styles.justLabel}>{key}</span>
+                <span style={styles.justText}>{text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -242,5 +257,43 @@ const styles = {
     fontSize: '1.1rem',
     fontWeight: '600',
     color: '#ffffff'
+  },
+  justificationsSection: {
+    width: '100%',
+    background: 'rgba(15, 5, 11, 0.4)',
+    border: '1px solid rgba(200, 82, 124, 0.08)',
+    borderRadius: '2px',
+    padding: '1rem',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem'
+  },
+  justTitle: {
+    fontSize: '0.65rem',
+    color: 'var(--color-pink-orchid)',
+    borderBottom: '1px solid rgba(200, 82, 124, 0.08)',
+    paddingBottom: '0.4rem',
+    marginBottom: '0.2rem'
+  },
+  justList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem'
+  },
+  justItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.2rem',
+    textAlign: 'left'
+  },
+  justLabel: {
+    fontSize: '0.55rem',
+    color: 'var(--color-blush)',
+    letterSpacing: '0.05em'
+  },
+  justText: {
+    fontSize: '0.78rem',
+    color: 'var(--text-secondary)',
+    lineHeight: '1.4'
   }
 };

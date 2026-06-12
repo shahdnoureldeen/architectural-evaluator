@@ -45,7 +45,7 @@ export default function Diagrams({ projectData }) {
   ];
 
   // Center canvas source image (default holographic pavilion vs custom upload)
-  const bgImageSrc = projectData.uploadedImage || "/holographic_pavilion.png";
+  const bgImageSrc = projectData.uploadedImage || projectData.image || "/holographic_pavilion.png";
 
   return (
     <div style={styles.container}>
